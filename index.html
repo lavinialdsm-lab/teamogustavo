@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Treino Gustavo • 2026</title>
+  <style>
+    :root{
+      --blue:#1F4FD8;
+      --green:#1F7A5F;
+      --red:#C0392B;
+      --bg:#0b1220;
+      --text:#eaf0ff;
+      --muted:#b9c6ff;
+      --line: rgba(255,255,255,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(31,79,216,.22), transparent 55%),
+                  radial-gradient(900px 700px at 80% 20%, rgba(31,122,95,.22), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    .wrap{ max-width: 980px; margin: 0 auto; padding: 14px; padding-bottom: 86px; } /* espaço pro footer */
+    .top{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      margin: 6px 0 12px;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border:1px solid var(--line); border-radius: 999px;
+      background: rgba(255,255,255,.04); box-shadow: var(--shadow);
+      font-weight:900; letter-spacing:.2px;
+    }
+    .badge small{ font-weight:800; color:var(--muted); }
+    .controls{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
+    button, select{
+      appearance:none; border:1px solid var(--line); background: rgba(255,255,255,.04);
+      color: var(--text); padding:10px 12px; border-radius: 12px; font-weight:900;
+      cursor:pointer; box-shadow: var(--shadow); min-height: 44px;
+    }
+    button:active{ transform: translateY(1px); }
+    .hint{ color: var(--muted); font-size: 13px; margin: 0 0 10px; opacity: .95; line-height: 1.35; }
+
+    .grid{ display:grid; grid-template-columns: 1fr; gap:12px; }
+    @media(min-width: 900px){ .grid{ grid-template-columns: 0.95fr 1.05fr; align-items:start; } }
+
+    .panel{
+      border:1px solid var(--line); border-radius: var(--radius);
+      background: rgba(255,255,255,.04); box-shadow: var(--shadow); overflow:hidden;
+    }
+    .panelHead{
+      display:flex; justify-content:space-between; gap:10px; align-items:center;
+      padding: 12px 12px; border-bottom:1px solid var(--line);
+      background: linear-gradient(90deg, rgba(31,79,216,.18), rgba(31,122,95,.12));
+    }
+    .panelHead .title{ font-weight:950; letter-spacing:.2px; }
+    .panelBody{ padding: 12px; }
+
+    .stats{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .stat{
+      flex: 1 1 140px; border:1px solid var(--line); border-radius: 14px;
+      background: rgba(255,255,255,.03); padding: 10px;
+    }
+    .stat .k{ color: var(--muted); font-size: 12px; font-weight:900; }
+    .stat .v{ font-size: 20px; font-weight:1000; margin-top:2px; }
+
+    .legend{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px; font-size: 12px; color: rgba(255,255,255,.85); font-weight:900; }
+    .dot{ width:10px; height:10px; border-radius:999px; display:inline-block; margin-right:6px; }
+    .dot.green{ background: var(--green); }
+    .dot.red{ background: var(--red); }
+    .dot.gray{ background: rgba(255,255,255,.25); }
+
+    .dow{
+      display:grid; grid-template-columns: repeat(7, 1fr); gap:6px;
+      margin-bottom: 8px; color: rgba(255,255,255,.7); font-size: 11px;
+      font-weight:950; text-align:center;
+    }
+    .cal{ display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; }
+    .day{
+      border:1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px 0;
+      text-align:center; font-weight:1000; cursor:pointer; background: rgba(255,255,255,.03);
+      user-select:none; min-height: 42px; display:flex; align-items:center; justify-content:center;
+    }
+    .day:hover{ border-color: rgba(255,255,255,.25); }
+    .day.future{ opacity:.55; background: rgba(255,255,255,.02); }
+    .day.trained{ background: rgba(31,122,95,.25); border-color: rgba(31,122,95,.65); }
+    .day.missed{ background: rgba(192,57,43,.22); border-color: rgba(192,57,43,.60); }
+    .day.selected{ outline: 2px solid rgba(255,255,255,.55); outline-offset: 2px; }
+
+    .list{ display:flex; flex-direction:column; gap:10px; padding: 12px; }
+    details{
+      border:1px solid var(--line); border-radius: var(--radius);
+      background: rgba(255,255,255,.04); box-shadow: var(--shadow); overflow:hidden;
+    }
+    summary{
+      list-style:none; cursor:pointer; padding:14px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      user-select:none; min-height: 48px;
+    }
+    summary::-webkit-details-marker{ display:none; }
+    .left{ display:flex; align-items:center; gap:10px; min-width:0; }
+    .pill{ width:12px; height:12px; border-radius:999px; flex:0 0 auto; }
+    .grp{ font-weight:1000; letter-spacing:.2px; font-size: 15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .meta{ font-size: 12px; color: var(--muted); font-weight:950; white-space:nowrap; }
+    .chev{
+      width: 10px; height: 10px; border-right: 2px solid rgba(255,255,255,.75); border-bottom: 2px solid rgba(255,255,255,.75);
+      transform: rotate(45deg); transition: transform .18s ease; flex:0 0 auto; margin-left: 8px;
+    }
+    details[open] .chev{ transform: rotate(225deg); }
+
+    .blue summary{ background: linear-gradient(90deg, rgba(31,79,216,.28), rgba(255,255,255,0)); }
+    .green summary{ background: linear-gradient(90deg, rgba(31,122,95,.28), rgba(255,255,255,0)); }
+    .blue .pill{ background: var(--blue); }
+    .green .pill{ background: var(--green); }
+
+    .content{ border-top:1px solid var(--line); padding: 12px 14px 14px; }
+    .exercise{
+      display:grid; grid-template-columns: 1fr auto; gap:10px;
+      padding: 10px 0; border-bottom:1px dashed rgba(255,255,255,.10);
+    }
+    .exercise:last-child{ border-bottom:none; padding-bottom:0; }
+    .exLeft{ display:flex; gap:10px; align-items:flex-start; min-width: 0; }
+    .exName{ font-weight:950; line-height:1.2; margin-bottom:4px; word-break: break-word; }
+    .exSets{ font-size: 12px; color: rgba(255,255,255,.78); font-weight:950; }
+    .exRight{ display:flex; gap:8px; align-items:center; justify-content:flex-end; }
+    .chk{ width: 22px; height: 22px; accent-color: var(--green); cursor:pointer; }
+    .kg{
+      width: 92px; padding:10px 10px; border-radius: 12px;
+      border:1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04);
+      color: var(--text); font-weight:1000; text-align:right; outline:none;
+    }
+    .kg::placeholder{ color: rgba(255,255,255,.45); font-weight:950; }
+
+    .dateBar{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      padding: 12px 12px; border-bottom:1px solid var(--line); background: rgba(255,255,255,.02);
+    }
+    .dateBar .selectedDate{ font-weight:1000; letter-spacing:.2px; }
+    .dateBar .small{ color: var(--muted); font-weight:900; font-size: 12px; }
+
+    .tinyBtn{
+      padding:10px 12px; border-radius: 12px; border:1px solid var(--line);
+      background: rgba(255,255,255,.04); color: var(--text); font-weight:1000; cursor:pointer; min-height: 44px;
+    }
+    .primaryBtn{
+      border-color: rgba(31,122,95,.55);
+      background: rgba(31,122,95,.20);
+    }
+
+    /* Mensagem fixa (canto inferior esquerdo) */
+    .loveFixed{
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      z-index: 999;
+      max-width: calc(100vw - 24px);
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(15,26,48,.78);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+      font-weight: 950;
+      letter-spacing: .1px;
+      font-size: 13px;
+      color: rgba(255,255,255,.92);
+      pointer-events: none; /* não atrapalha clique */
+    }
+
+    /* Toast de finalização */
+    .toast{
+      position: fixed;
+      left: 12px;
+      bottom: 60px;
+      z-index: 1000;
+      width: min(420px, calc(100vw - 24px));
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(31,122,95,.55);
+      background: rgba(31,122,95,.22);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+      font-weight: 1000;
+      letter-spacing: .1px;
+      transform: translateY(12px);
+      opacity: 0;
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events: none;
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <div class="top">
+      <div class="badge">Treino Gustavo <small>• 2026</small></div>
+      <div class="controls">
+        <select id="monthSelect" aria-label="Selecionar mês"></select>
+        <button id="expandAll" type="button">Abrir</button>
+        <button id="collapseAll" type="button">Fechar</button>
+      </div>
+    </div>
+
+    <p class="hint">
+      Clique em um dia do calendário. Marque os exercícios como feitos e preencha as cargas (kg).<br/>
+      Dias passados: <span class="dot green"></span>treinou / <span class="dot red"></span>não treinou. Futuro fica cinza.
+    </p>
+
+    <div class="grid">
+
+      <!-- CALENDÁRIO -->
+      <div class="panel">
+        <div class="panelHead">
+          <div class="title" id="calTitle">Calendário 2026</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="tinyBtn" id="todayBtn" type="button">Ir para hoje</button>
+          </div>
+        </div>
+        <div class="panelBody">
+          <div class="dow">
+            <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+          </div>
+          <div class="cal" id="calGrid"></div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="k">Treinos no mês</div>
+              <div class="v" id="monthCount">0</div>
+            </div>
+            <div class="stat">
+              <div class="k">Treinos na semana</div>
+              <div class="v" id="weekCount">0</div>
+            </div>
+          </div>
+
+          <div class="legend">
+            <span><span class="dot green"></span>Treinou</span>
+            <span><span class="dot red"></span>Não treinou</span>
+            <span><span class="dot gray"></span>Futuro / não aplicável</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TREINO -->
+      <div class="panel">
+        <div class="dateBar">
+          <div>
+            <div class="selectedDate" id="selectedDateLabel">Selecione um dia</div>
+            <div class="small">Salva automaticamente no celular.</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="tinyBtn primaryBtn" id="finishDayBtn" type="button">Concluir treino do dia</button>
+            <button class="tinyBtn" id="clearDayBtn" type="button">Limpar dia</button>
+          </div>
+        </div>
+
+        <div class="list" id="accordion"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mensagem fixa -->
+  <div class="loveFixed">eu te amo bom treino amor</div>
+
+  <!-- Toast ao concluir -->
+  <div class="toast" id="toast">você tá forte amor te amo</div>
+
+  <script>
+    // ======== DADOS DO TREINO ========
+    const WORKOUTS = [
+      {
+        id: "peito_triceps",
+        color: "blue",
+        title: "Peito + Tríceps",
+        items: [
+          { id:"supino_reto", name:"Supino reto (barra)", sets:"4×6–8" },
+          { id:"supino_inclinado", name:"Supino inclinado (halter)", sets:"4×8–10" },
+          { id:"crucifixo_banco", name:"Crucifixo (banco)", sets:"3×10–12" },
+          { id:"peck_deck", name:"Peck deck", sets:"3×12" },
+          { id:"triceps_testa", name:"Tríceps testa", sets:"3×10–12" },
+          { id:"triceps_frances", name:"Tríceps francês (halter)", sets:"3×10–12" },
+          { id:"pulley_w", name:"Pulley (barra W)", sets:"4×10" },
+        ]
+      },
+      {
+        id: "quad_pant",
+        color: "green",
+        title: "Quadríceps + Panturrilha",
+        items: [
+          { id:"agachamento", name:"Agachamento", sets:"—" },
+          { id:"terra", name:"Levantamento terra", sets:"—" },
+          { id:"extensora", name:"Extensora", sets:"—" },
+          { id:"leg_horiz_uni", name:"Leg press horizontal (unilateral)", sets:"—" },
+          { id:"adutora", name:"Adutora", sets:"—" },
+          { id:"panturrilha", name:"Panturrilha", sets:"—" },
+        ]
+      },
+      {
+        id: "costas_biceps",
+        color: "blue",
+        title: "Costas + Bíceps",
+        items: [
+          { id:"puxada_alta", name:"Puxada alta", sets:"4×8" },
+          { id:"remada_curvada", name:"Remada curvada (barra)", sets:"4×6–8" },
+          { id:"remada_uni", name:"Remada unilateral (polia)", sets:"3×10–12" },
+          { id:"pullover", name:"Pullover (máquina/polia)", sets:"3×12" },
+          { id:"rosca_direta_w", name:"Rosca direta (barra W)", sets:"4×8" },
+          { id:"rosca_alternada", name:"Rosca alternada (halter)", sets:"3×10" },
+          { id:"rosca_scott", name:"Rosca Scott", sets:"3×12" },
+        ]
+      },
+      {
+        id: "post_gluteo",
+        color: "green",
+        title: "Posterior + Glúteo",
+        items: [
+          { id:"stiff", name:"Stiff", sets:"4×6–10" },
+          { id:"flexora", name:"Cadeira flexora", sets:"3×8–10" },
+          { id:"elev_pelv", name:"Elevação pélvica", sets:"4×6–10" },
+          { id:"bulgaro", name:"Búlgaro", sets:"3×8–10" },
+          { id:"sumo", name:"Agachamento sumô", sets:"3×8–10" },
+        ]
+      },
+      {
+        id: "ombro_trapezio",
+        color: "blue",
+        title: "Ombro + Trapézio",
+        items: [
+          { id:"desenv_halter", name:"Desenvolvimento (halter)", sets:"4×8" },
+          { id:"desenv_maquina", name:"Desenvolvimento (máquina)", sets:"3×10" },
+          { id:"elev_lateral", name:"Elevação lateral", sets:"4×12" },
+          { id:"elev_frontal", name:"Elevação frontal", sets:"3×10" },
+          { id:"crucifixo_inv", name:"Crucifixo inverso (polia)", sets:"3×12" },
+          { id:"encolhimento", name:"Encolhimento (halter/barra)", sets:"4×15" },
+          { id:"encolhimento_smith", name:"Encolhimento (Smith)", sets:"3×12" },
+        ]
+      }
+    ];
+
+    // ======== STORAGE ========
+    const STORAGE_KEY = "gustavo_training_2026_v2";
+    function loadAll(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }catch(e){ return {}; } }
+    function saveAll(data){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+    function ensureDay(all, dateKey){ if(!all[dateKey]) all[dateKey] = {}; return all[dateKey]; }
+
+    // ======== DATE HELPERS ========
+    const YEAR = 2026;
+    const monthNames = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    function pad2(n){ return String(n).padStart(2,"0"); }
+    function dateKeyFromParts(y,m,d){ return `${y}-${pad2(m+1)}-${pad2(d)}`; }
+    function todayLocal(){
+      const t = new Date();
+      return new Date(t.getFullYear(), t.getMonth(), t.getDate());
+    }
+    function isPastDay(dateObj){ return dateObj.getTime() < todayLocal().getTime(); }
+    function isFutureDay(dateObj){ return dateObj.getTime() > todayLocal().getTime(); }
+    function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
+    function firstDow(y,m){ return new Date(y,m,1).getDay(); }
+    function weekIndexInMonth(y,m,d){
+      const offset = firstDow(y,m);
+      return Math.floor((offset + (d-1))/7);
+    }
+    function weekRange(y,m,weekIdx){
+      const offset = firstDow(y,m);
+      const startDay = weekIdx*7 - offset + 1;
+      const endDay = startDay + 6;
+      return { startDay, endDay };
+    }
+
+    // ======== UI STATE ========
+    let currentMonth = 0;
+    let selectedDay = null;
+    let selectedDateKey = null;
+
+    // ======== WORKOUT RENDER ========
+    const accordion = document.getElementById("accordion");
+
+    function renderAccordion(){
+      accordion.innerHTML = "";
+      WORKOUTS.forEach(group => {
+        const details = document.createElement("details");
+        details.className = group.color;
+        if(group.id === "peito_triceps") details.open = true;
+
+        const summary = document.createElement("summary");
+        summary.innerHTML = `
+          <div class="left">
+            <span class="pill" aria-hidden="true"></span>
+            <div class="grp">${group.title}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="meta">${group.items.length} exercícios</div>
+            <span class="chev" aria-hidden="true"></span>
+          </div>
+        `;
+
+        const content = document.createElement("div");
+        content.className = "content";
+
+        group.items.forEach(item => {
+          const row = document.createElement("div");
+          row.className = "exercise";
+          row.dataset.exerciseId = item.id;
+
+          row.innerHTML = `
+            <div class="exLeft">
+              <input class="chk" type="checkbox" aria-label="Marcar como feito" />
+              <div style="min-width:0;">
+                <div class="exName">${item.name}</div>
+                <div class="exSets">${item.sets}</div>
+              </div>
+            </div>
+            <div class="exRight">
+              <input class="kg" type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" aria-label="Carga em kg" />
+            </div>
+          `;
+
+          const chk = row.querySelector(".chk");
+          const kg = row.querySelector(".kg");
+
+          chk.addEventListener("change", () => {
+            if(!selectedDateKey) return;
+            const all = loadAll();
+            const dayData = ensureDay(all, selectedDateKey);
+            const ex = dayData[item.id] || { done:false, kg:"" };
+            ex.done = chk.checked;
+            dayData[item.id] = ex;
+            saveAll(all);
+            renderCalendar();
+          });
+
+          kg.addEventListener("input", () => {
+            if(!selectedDateKey) return;
+            const all = loadAll();
+            const dayData = ensureDay(all, selectedDateKey);
+            const ex = dayData[item.id] || { done:false, kg:"" };
+            ex.kg = kg.value;
+            dayData[item.id] = ex;
+            saveAll(all);
+          });
+
+          content.appendChild(row);
+        });
+
+        details.appendChild(summary);
+        details.appendChild(content);
+        accordion.appendChild(details);
+      });
+
+      hydrateWorkoutForSelectedDay();
+    }
+
+    function hydrateWorkoutForSelectedDay(){
+      const label = document.getElementById("selectedDateLabel");
+      if(!selectedDateKey){
+        label.textContent = "Selecione um dia";
+        accordion.querySelectorAll(".exercise").forEach(row => {
+          row.querySelector(".chk").checked = false;
+          row.querySelector(".kg").value = "";
+        });
+        return;
+      }
+      label.textContent = `Dia selecionado: ${selectedDateKey}`;
+      const all = loadAll();
+      const dayData = all[selectedDateKey] || {};
+      accordion.querySelectorAll(".exercise").forEach(row => {
+        const id = row.dataset.exerciseId;
+        row.querySelector(".chk").checked = !!(dayData[id]?.done);
+        row.querySelector(".kg").value = dayData[id]?.kg ?? "";
+      });
+    }
+
+    function dayTrained(dateKey){
+      const all = loadAll();
+      const d = all[dateKey];
+      if(!d) return false;
+      if(d.__finished === true) return true; // marcado como concluído
+      return Object.values(d).some(v => v && v.done === true);
+    }
+
+    // ======== CALENDAR ========
+    const monthSelect = document.getElementById("monthSelect");
+    const calGrid = document.getElementById("calGrid");
+    const calTitle = document.getElementById("calTitle");
+    const monthCountEl = document.getElementById("monthCount");
+    const weekCountEl = document.getElementById("weekCount");
+
+    function initMonthSelect(){
+      monthSelect.innerHTML = "";
+      monthNames.forEach((name, idx) => {
+        const opt = document.createElement("option");
+        opt.value = String(idx);
+        opt.textContent = `${name} ${YEAR}`;
+        monthSelect.appendChild(opt);
+      });
+      monthSelect.value = String(currentMonth);
+      monthSelect.addEventListener("change", () => {
+        currentMonth = Number(monthSelect.value);
+        selectedDay = 1;
+        selectedDateKey = dateKeyFromParts(YEAR, currentMonth, selectedDay);
+        renderCalendar();
+        hydrateWorkoutForSelectedDay();
+      });
+    }
+
+    function renderCalendar(){
+      calTitle.textContent = `${monthNames[currentMonth]} ${YEAR}`;
+      calGrid.innerHTML = "";
+
+      const dim = daysInMonth(YEAR, currentMonth);
+      const offset = firstDow(YEAR, currentMonth);
+
+      // Mês
+      let monthTrainCount = 0;
+      for(let d=1; d<=dim; d++){
+        const key = dateKeyFromParts(YEAR, currentMonth, d);
+        if(dayTrained(key)) monthTrainCount++;
+      }
+      monthCountEl.textContent = monthTrainCount;
+
+      // Espaços iniciais
+      for(let i=0; i<offset; i++){
+        const spacer = document.createElement("div");
+        spacer.style.visibility = "hidden";
+        spacer.className = "day";
+        spacer.textContent = "0";
+        calGrid.appendChild(spacer);
+      }
+
+      for(let d=1; d<=dim; d++){
+        const dateObj = new Date(YEAR, currentMonth, d);
+        const key = dateKeyFromParts(YEAR, currentMonth, d);
+
+        const el = document.createElement("div");
+        el.className = "day";
+        el.textContent = String(d);
+
+        const trained = dayTrained(key);
+        const past = isPastDay(dateObj);
+        const future = isFutureDay(dateObj);
+        const isToday = dateObj.getTime() === todayLocal().getTime();
+
+        if(future) el.classList.add("future");
+        if(past && trained) el.classList.add("trained");
+        if(past && !trained) el.classList.add("missed");
+
+        // Hoje não fica vermelho se não treinou
+        if(isToday){
+          el.classList.remove("missed");
+          if(trained) el.classList.add("trained");
+        }
+
+        if(selectedDateKey === key) el.classList.add("selected");
+
+        el.addEventListener("click", () => {
+          selectedDay = d;
+          selectedDateKey = key;
+          renderCalendar();
+          hydrateWorkoutForSelectedDay();
+          updateWeekCount();
+        });
+
+        calGrid.appendChild(el);
+      }
+
+      const totalCells = offset + dim;
+      const remainder = totalCells % 7;
+      if(remainder !== 0){
+        const blanks = 7 - remainder;
+        for(let i=0; i<blanks; i++){
+          const spacer = document.createElement("div");
+          spacer.style.visibility = "hidden";
+          spacer.className = "day";
+          spacer.textContent = "0";
+          calGrid.appendChild(spacer);
+        }
+      }
+
+      updateWeekCount();
+    }
+
+    function updateWeekCount(){
+      if(!selectedDateKey){
+        weekCountEl.textContent = "0";
+        return;
+      }
+      const dim = daysInMonth(YEAR, currentMonth);
+      const wkIdx = weekIndexInMonth(YEAR, currentMonth, selectedDay);
+      const range = weekRange(YEAR, currentMonth, wkIdx);
+      let c = 0;
+      for(let d = range.startDay; d <= range.endDay; d++){
+        if(d < 1 || d > dim) continue;
+        const key = dateKeyFromParts(YEAR, currentMonth, d);
+        if(dayTrained(key)) c++;
+      }
+      weekCountEl.textContent = c;
+    }
+
+    // ======== CONTROLS ========
+    document.getElementById("expandAll").addEventListener("click", () => {
+      document.querySelectorAll("#accordion details").forEach(d => d.open = true);
+    });
+    document.getElementById("collapseAll").addEventListener("click", () => {
+      document.querySelectorAll("#accordion details").forEach(d => d.open = false);
+    });
+
+    document.getElementById("clearDayBtn").addEventListener("click", () => {
+      if(!selectedDateKey) return;
+      const all = loadAll();
+      delete all[selectedDateKey];
+      saveAll(all);
+      hydrateWorkoutForSelectedDay();
+      renderCalendar();
+    });
+
+    document.getElementById("todayBtn").addEventListener("click", () => {
+      const t = todayLocal();
+      if(t.getFullYear() !== YEAR){
+        currentMonth = 0; selectedDay = 1;
+      }else{
+        currentMonth = t.getMonth(); selectedDay = t.getDate();
+      }
+      selectedDateKey = dateKeyFromParts(YEAR, currentMonth, selectedDay);
+      monthSelect.value = String(currentMonth);
+      renderCalendar();
+      hydrateWorkoutForSelectedDay();
+    });
+
+    // Concluir treino do dia (marca como treinado e mostra mensagem)
+    const toast = document.getElementById("toast");
+    function showToast(){
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2500);
+    }
+
+    document.getElementById("finishDayBtn").addEventListener("click", () => {
+      if(!selectedDateKey) return;
+      const all = loadAll();
+      const dayData = ensureDay(all, selectedDateKey);
+      dayData.__finished = true; // “concluído”
+      saveAll(all);
+      renderCalendar();
+      showToast();
+    });
+
+    // ======== INIT ========
+    (function init(){
+      const t = todayLocal();
+      if(t.getFullYear() === YEAR){
+        currentMonth = t.getMonth();
+        selectedDay = t.getDate();
+      }else{
+        currentMonth = 0;
+        selectedDay = 1;
+      }
+      selectedDateKey = dateKeyFromParts(YEAR, currentMonth, selectedDay);
+
+      initMonthSelect();
+      renderAccordion();
+      renderCalendar();
+      hydrateWorkoutForSelectedDay();
+    })();
+  </script>
+</body>
+</html>
